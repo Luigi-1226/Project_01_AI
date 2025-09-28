@@ -16,7 +16,6 @@ class MundoLagarta(Problem):
         head, body, effort = state
         x, y = head
     
-        # Gravidade: se não estiver apoiada, só pode 'B'
         if not self._head_supported_for_gravity(head, body):
             dest = (x, y - 1)
             if self._in_bounds(dest) and self._is_free_or_apple(dest, body):
@@ -45,7 +44,7 @@ class MundoLagarta(Problem):
     def result(self, state, action):
         head, body, effort = state
         if action not in ('B', 'C', 'D', 'E'):
-            return state  # ação inválida (não altera estado)
+            return state 
 
         dx, dy = {
             'B': (0, -1),
@@ -55,17 +54,14 @@ class MundoLagarta(Problem):
         }[action]
 
         new_head = (head[0] + dx, head[1] + dy)
-        # a cabeça anterior vira corpo
         new_body = set(body)
         new_body.add(head)
         new_body = frozenset(new_body)
 
-        # atualizar esforço
         if action == 'C':
             new_effort = min(3, effort + 1)
         else:
-            # reset para 0 se a NOVA casa tiver apoio; caso contrário mantém
-            if self._support(new_head, new_body):   # <-- corrigido
+            if self._support(new_head, new_body):   
                 new_effort = 0
             else:
                 new_effort = effort
@@ -90,6 +86,24 @@ class MundoLagarta(Problem):
     def goal_test(self, state):
         head, _, _ = state
         return head == self.apple
+    
+    def executa(self, state, actions_list, verbose=False):
+        cost = 0
+        for a in actions_list:
+            seg = self.result(state, a)
+            cost = self.path_cost(cost, state, a, seg)
+            state = seg
+            obj = self.goal_test(state)
+            if verbose:
+                print('Ação:', a)
+                print(self.display(state), end='')
+                print('Custo Total:', cost)
+                print('Atingido o objetivo?', obj)
+                print()
+            if obj:
+                break
+        return (state, cost, obj)
+
 
     # ---------------- auxiliares ----------------
     def _parse_grid(self, grid):
