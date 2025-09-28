@@ -13,6 +13,111 @@ class MundoLagarta(Problem):
         initialState = (head, body, 0)
         super().__init__(initialState) 
 
+    def actions(self, state):
+        head, body, effort = state
+        x,y = head
+    
+        if not self._head_supported_for_gravity(head, body):
+            dest = (x, y-1)
+            if self._in_bounds(dest) and self._is_free_or_apple(dest, body):
+                return ['B']
+            return []
+        
+        actions = []
+        moves = {'C': (0,1), 'B': (0,-1), 'E': (-1,0), 'D': (1,0)}
+
+        for i, (dx,dy) in moves.items():
+            dest = (x+dx, y+dy)
+
+            if not self._in_bounds(dest):
+                continue
+            if not self._is_free_or_apple(dest, body):
+                continue
+            if i == 'C' and effort >= 3:
+                continue
+            if effort > 0 and i in ('E','D') and not self._support(dest, body):
+                continue
+
+            actions.append(i)
+
+        return sorted (actions)
+    
+   
+    def result(self, state, action):
+        head, body, effort = state
+        if action not in ('B', 'C', 'D', 'E'):
+            return state  # ação inválida (não altera estado)
+
+        dx, dy = {
+            'B': (0, -1),
+            'C': (0,  1),
+            'D': (1,  0),
+            'E': (-1, 0),
+        }[action]
+
+        new_head = (head[0] + dx, head[1] + dy)
+        # a cabeça anterior vira corpo
+        new_body = set(body)
+        new_body.add(head)
+        new_body = frozenset(new_body)
+
+        # atualizar esforço
+        if action == 'C':
+            new_effort = min(3, effort + 1)
+        else:
+            # reset para 0 se a NOVA casa tiver apoio; caso contrário mantém
+            if self._has_support(new_head, new_body):
+                new_effort = 0
+            else:
+                new_effort = effort
+
+        return (new_head, new_body, new_effort)
+    
+    def display(self, state):
+        head, body, _ = state
+        # base com '.'
+        grid = [['.' for _ in range(self.M)] for _ in range(self.N)]
+        # paredes
+        for (x, y) in self.walls:
+            grid[self.N - 1 - y][x] = '='
+        # maçã (não desenhar se a cabeça estiver lá)
+        if head != self.apple:
+            ax, ay = self.apple
+            grid[self.N - 1 - ay][ax] = 'x'
+        # corpo
+        for (x, y) in body:
+            if (x, y) not in self.walls:
+                grid[self.N - 1 - y][x] = 'o'
+        # cabeça
+        hx, hy = head
+        grid[self.N - 1 - hy][hx] = '@'
+        return '\n'.join(' '.join(row) for row in grid) + '\n'
+        
+    
+
+        
+        
+       
+    
+ 
+
+    def goal_test(self, state):
+        head, _, _ = state
+        return head == self.apple
+    
+
+
+
+
+
+
+
+
+
+
+
+
+#funções auxiliares para o problema
     def _parse_grid(self, grid):
         linhas = [linha.strip() for linha in grid.strip('\n').splitlines()]
         cells = [linha.split() for linha in linhas]
@@ -39,9 +144,17 @@ class MundoLagarta(Problem):
         x,y = cell
         return 0 <= x < self.M and 0 <= y < self.N
     
- 
+    def _is_free_or_apple(self, cell, body):
+        if cell == self.apple:
+            return True
+        return cell not in self.walls and cell not in body
+    
+    def _support(self, cell, body):
+        x,y = cell
+        below = (x, y-1)
+        return  (below in body) or (below in self.walls)
+    
+    def _head_supported_for_gravity(self,head,body):
+        return self._support(head, body)
 
-    def goal_test(self, state):
-        head, _, _ = state
-        return head == self.apple
     
