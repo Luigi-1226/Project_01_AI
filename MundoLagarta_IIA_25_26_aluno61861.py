@@ -1,5 +1,15 @@
 from searchPlus import *
 
+# predefinição de um mundo inicial simples:
+line1 = "= = = = = = =\n"
+line2 = "= x . . . . =\n"
+line3 = "= . . . = . =\n"
+line4 = "= . . . = . =\n"
+line5 = "= = = . = . =\n"
+line6 = "= @ . . . . =\n"
+line7 = "= = = = = = =\n"
+grid = line1 + line2 + line3 + line4 + line5 + line6 + line7
+
 class MundoLagarta(Problem):
     """Estado = (head, frozenset(body), effort)
       - head = (x,y)
@@ -7,7 +17,7 @@ class MundoLagarta(Problem):
       - effort = inteiro em [0,3]
       Mundo estático na instância: paredes, dimensões, posição da maçã."""
     
-    def __init__(self, mundo):
+    def __init__(self, mundo=grid):
         self.M, self.N, self.walls, self.apple, head, body = self._parse_grid(mundo)
         initialState = (head, frozenset(body), 0)
         super().__init__(initialState)
@@ -143,3 +153,4 @@ class MundoLagarta(Problem):
     
     def _head_supported_for_gravity(self, head, body):
         return self._support(head, body)
+        
