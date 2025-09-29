@@ -1,4 +1,4 @@
-from searchPlus import Problem
+from searchPlus import *
 
 class MundoLagarta(Problem):
     """Estado = (head, frozenset(body), effort)
@@ -7,7 +7,7 @@ class MundoLagarta(Problem):
       - effort = inteiro em [0,3]
       Mundo estático na instância: paredes, dimensões, posição da maçã."""
     
-    def __init__(self, mundo=grid):
+    def __init__(self, mundo):
         self.M, self.N, self.walls, self.apple, head, body = self._parse_grid(mundo)
         initialState = (head, frozenset(body), 0)
         super().__init__(initialState)
